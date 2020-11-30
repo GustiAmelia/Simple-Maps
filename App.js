@@ -7,33 +7,35 @@
  */
 
 import React,{useState,useEffect} from 'react';
+import {useSelector, useDispatch} from 'react-redux';
 import {
-  SafeAreaView,
   StyleSheet,
-  ScrollView,
   View,
   Text,
-  StatusBar,
+  TouchableOpacity,
 } from 'react-native';
-
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
 
 import MapView, {Marker} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
+import {getLocation} from './redux/actions/location';
 
 const App = () => {
 
+  const selectLocation = useSelector((state)=>state.location.selectLocation);
+  console.log(selectLocation)
+  const dispatch = useDispatch()
+  
   const [location, setLocation]= useState({
     latitude:0,
     longitude:0,
     error:null,
   })
+
+  const [selectMarker, setSelectMarker]=useState(location);
+
+  const handleButton = ()=>{
+    dispatch(getLocation(selectMarker))
+  }
 
   useEffect(()=>{
     Geolocation.getCurrentPosition(
@@ -52,33 +54,79 @@ const App = () => {
     )
   },[])
   return (
-    <MapView
-      style={styles.map}
-      region={{
-        latitude: location.latitude,
-        longitude: location.longitude,
-        latitudeDelta: 0.015,
-        longitudeDelta: 0.0121,
-      }}
-      showsUserLocation
-      onPress={(e)=>{console.log(e.nativeEvent)}}
-    >
-    <Marker coordinate={location}
-    />
-    </MapView>
+    <>
+    <View style={styles.container}>
+      <MapView
+        style={styles.map}
+        region={{
+          latitude: location.latitude,
+          longitude: location.longitude,
+          latitudeDelta: 0.015,
+          longitudeDelta: 0.0121,
+        }}
+        showsUserLocation
+        onPress={(e)=>{setSelectMarker(e.nativeEvent.coordinate)}}
+      >
+      <Marker coordinate={selectMarker}
+      />
+      {selectLocation.length === 0 ? null :
+      selectLocation.map((item,index)=>{
+        return (
+          <Marker coordinate={item} key={index}/>
+        )
+      })
+      }
+      </MapView>
+    </View>
+    <View style={styles.information}>
+      <View style={styles.textInformation}>
+        <Text style={styles.title}>Selected Coordinat</Text>
+        <Text style={styles.text}>Latitude : {selectMarker.latitude}</Text>
+        <Text style={styles.text}>Longitude :{selectMarker.longitude}</Text>
+        <TouchableOpacity style={styles.button} onPress={handleButton}>
+          <Text style={styles.textButton}>Save Coordinat</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
-    height: 400,
-    width: 400,
+    flex:6,
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
   map: {
     ...StyleSheet.absoluteFillObject,
+  },
+  information:{
+    flex:2,
+  },
+  textInformation:{
+    padding:10,
+  },
+  title:{
+    fontSize:20,
+  },
+  text:{
+    fontSize:16,
+  },
+  button:{
+    marginTop:10,
+    alignItems:'center',
+    justifyContent:'center',
+    backgroundColor:'pink',
+    marginHorizontal:50,
+    borderRadius:10,
+    elevation:5,
+  },
+  textButton:{
+    color:'white',
+    fontWeight:'bold',
+    lineHeight:35,
+    fontSize:18,
   },
 });
 
