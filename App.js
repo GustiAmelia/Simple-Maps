@@ -22,7 +22,7 @@ import {getLocation} from './redux/actions/location';
 const App = () => {
 
   const selectLocation = useSelector((state)=>state.location.selectLocation);
-  console.log(selectLocation)
+ 
   const dispatch = useDispatch()
   
   const [location, setLocation]= useState({
